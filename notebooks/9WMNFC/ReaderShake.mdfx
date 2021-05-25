@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<TecanFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="tecan.at.schema.documents Main.xsd" fileformat="Tecan.At.Measurement" fileversion="2.0" xmlns="tecan.at.schema.documents">
+    <FileInfo type="" instrument="infinite 200Pro" version="" createdFrom="Admin" createdAt="2019-08-14T13:57:39.8163211Z" createdWith="Tecan.At.XFluor.ReaderEditor.XFluorReaderEditor" description="" />
+    <TecanMeasurement id="1" class="">
+        <MeasurementManualCycle id="2" number="1" type="Standard">
+            <CyclePlate id="3" file="GRE96fb_µClear" plateWithCover="False">
+                <PlateRange id="4" range="A1:H12" auto="false">
+                    <Shaking id="5" mode="Orbital" time="PT10M" frequency="0" amplitude="1000" maxDeviation="PT0S" settleTime="PT0S" />
+                    <WaitTime id="6" timeSpan="PT5M" maxDeviation="PT0S" refTimeID="0" ignoreInLastCycle="False" />
+                    <Shaking id="7" mode="Orbital" time="PT10M" frequency="0" amplitude="1000" maxDeviation="PT0S" settleTime="PT0S" />
+                    <WaitTime id="8" timeSpan="PT5M" maxDeviation="PT0S" refTimeID="0" ignoreInLastCycle="False" />
+                    <Shaking id="9" mode="Orbital" time="PT10M" frequency="0" amplitude="1000" maxDeviation="PT0S" settleTime="PT0S" />
+                    <WaitTime id="10" timeSpan="PT5M" maxDeviation="PT0S" refTimeID="0" ignoreInLastCycle="False" />
+                </PlateRange>
+            </CyclePlate>
+        </MeasurementManualCycle>
+        <MeasurementInfo id="0" description="">
+            <ScriptTemplateSettings id="0">
+                <ScriptTemplateGeneralSettings id="0" Title="" Group="" Info="" Image="" />
+                <ScriptTemplateDescriptionSettings id="0" Internal="" External="" IsExternal="False" />
+            </ScriptTemplateSettings>
+        </MeasurementInfo>
+    </TecanMeasurement>
+</TecanFile>
