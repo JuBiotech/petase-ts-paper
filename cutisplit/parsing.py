@@ -60,7 +60,7 @@ def read_cutinase(
     return df_cutinase
 
 
-def read_sgfpread_cutinase(
+def read_sgfp(
     dp_run: os.PathLike,
 ) -> typing.Tuple[pandas.DataFrame, float]:
     """Parse sGFP data into DataFrame and time delta between pipetting and measurement."""
