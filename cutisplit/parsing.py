@@ -9,6 +9,7 @@ import retl
 
 
 def read_nitrophenol_calibration(dp_run: os.PathLike):
+    """Parse Nitrophenol calibration data into DataFrame for calibr8 model."""
     df_standards = retl.parse(pathlib.Path(dp_run, "Cutinase_Standard.xml"))[
         "Label1_Copy1"
     ].value
@@ -41,7 +42,8 @@ def read_nitrophenol_calibration(dp_run: os.PathLike):
 
 def read_cutinase(
     dp_run: os.PathLike,
-) -> typing.Tuple[pandas.DataFrame, pandas.DataFrame, numpy.ndarray, numpy.ndarray]:
+) -> pandas.DataFrame:
+    """Parse cutinase data into DataFrame."""
     samples = retl.parse(pathlib.Path(dp_run, "Cutinase_Sample.xml"))
     df_value = samples["Label1_Copy1"].value
     # Time in minutes and not in hours
@@ -58,7 +60,10 @@ def read_cutinase(
     return df_cutinase
 
 
-def read_sgfp(dp_run: os.PathLike):
+def read_sgfpread_cutinase(
+    dp_run: os.PathLike,
+) -> typing.Tuple[pandas.DataFrame, float]:
+    """Parse sGFP data into DataFrame and time delta between pipetting and measurement."""
     data = []
     time = []
     t0_measured = None

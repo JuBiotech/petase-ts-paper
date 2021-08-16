@@ -11,7 +11,7 @@ import robotools
 import cutisplit
 
 
-DP_RUN = pathlib.Path(r"\\IBT101\DATA\CM\Pahpshmir_BL-sGFP-Cutinase-BSI\9REA8P")
+DP_RUN = pathlib.Path(r"\\IBT705\DATA\CM\Pahpshmir_BL-sGFP-Cutinase-BSI\9REA8P")
 
 
 def get_df_calibration():
