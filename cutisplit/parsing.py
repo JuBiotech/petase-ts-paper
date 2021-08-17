@@ -94,6 +94,12 @@ def read_sgfp(
                 )
                 t0_pipetted = dt_load + datetime.timedelta(minutes=10)
                 break
+            elif "sGFP assay: Assay start" in line:
+                dt_load = datetime.datetime.strptime(
+                    line[2:21] + "+0000", "%Y-%m-%dT%H:%M:%S%z"
+                )
+                t0_pipetted = dt_load + datetime.timedelta(minutes=10)
+                break
     t0_delta = (t0_measured - t0_pipetted).total_seconds() / 3600
     print(
         f"The MTP was pipetted at {t0_pipetted} ({t0_delta:.2f} hours before the end of the first measurement)."
