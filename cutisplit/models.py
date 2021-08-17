@@ -189,7 +189,7 @@ class CombinedModel:
         )
 
         cf_input = pymc3.Data(
-            "cf_input", df_inputs.concentration_factor.values, dims=("input_well",)
+            "cf_input", df_inputs.concentration_factor.to_numpy(dtype=float), dims=("input_well",)
         )
         cf_cutinase_assay = pymc3.Lognormal(
             "cf_cutinase_assay",
