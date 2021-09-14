@@ -237,12 +237,12 @@ class CombinedModel:
             "cutinase_time", t_obs, dims=("assay_well", "cutinase_cycle")
         )
         #P0 = pymc3.Uniform("P0", 0, 0.4, dims=("assay_well",))
-        S0 = pymc3.Uniform("S0", 1.5, 3) #truth should be 0.662 mM
+        S0 = pymc3.Uniform("S0", 0.5, 0.7) #truth should be 0.662 mM
         time_delay = pymc3.HalfNormal("time_delay", sd=5, dims=("assay_well"))
 
         product_concentration = pymc3.Deterministic(
             "product_concentration",
-            S0 * (1 - tt.exp(-k_assay[:, None] * (cutinase_time + time_delay[:,None]))),
+            S0 * (1 - tt.exp(-k_assay[:, None] * (cutinase_time + time_delay[:, None]))),
             dims=("assay_well", "cutinase_cycle"),
         )
 

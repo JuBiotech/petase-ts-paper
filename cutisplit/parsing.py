@@ -21,8 +21,7 @@ def read_nitrophenol_calibration(dp_run: os.PathLike):
     # numpy magic to expand it into the same shape as the wells:
     standard_concentrations = numpy.repeat(
         standard_concentrations.reshape(3, 8).flatten("F")[None, :], repeats=3
-    ).reshape(8, 3 * 3)
-    standard_concentrations
+    ).reshape(8, 3 * 3) / 6 #final dilution of 40 ul in 200 ul
 
     # the corresponding well IDs:
     standard_wells = numpy.array(
