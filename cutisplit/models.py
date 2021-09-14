@@ -223,12 +223,12 @@ class CombinedModel:
         # For the cutinase assay, we introduce the specific enzyme activity in the supernatant [µmol/mL/min].
         # Again, we assume one undiluted activity and calculate the activities in the sample/replicate wells
         # deterministically from the relative concentrations above.
-        vmax = pymc3.HalfFlat("vmax", dims=("type",))
+        k = pymc3.HalfFlat("k", dims=("type",))
         # The inputs are diluted 500x into the assay.
         dilution_factor = pymc3.Data("dilution_factor", 72)
-        vmax_assay = pymc3.Deterministic(
-            "vmax_assay",
-            cf_cutinase_assay * vmax[self._type_indices] / dilution_factor,
+        k_assay = pymc3.Deterministic(
+            "k_assay",
+            cf_cutinase_assay * k[self._type_indices] / dilution_factor,
             dims=("assay_well",),
         )
 
@@ -236,11 +236,13 @@ class CombinedModel:
         cutinase_time = pymc3.Data(
             "cutinase_time", t_obs, dims=("assay_well", "cutinase_cycle")
         )
-        P0 = pymc3.Uniform("P0", 0, 1, dims=("assay_well",))
-        S0 = pymc3.Uniform("S0", 0.5, 0.7, dims=("assay_well",)) #truth should be 0.662 mM
+        #P0 = pymc3.Uniform("P0", 0, 0.4, dims=("assay_well",))
+        S0 = pymc3.Uniform("S0", 1.5, 3) #truth should be 0.662 mM
+        time_delay = pymc3.HalfNormal("time_delay", sd=5, dims=("assay_well"))
+
         product_concentration = pymc3.Deterministic(
             "product_concentration",
-            P0[:, None] + S0 * (1 - tt.exp(-vmax_assay[:, None] * cutinase_time)),
+            S0 * (1 - tt.exp(-k_assay[:, None] * (cutinase_time + time_delay[:,None]))),
             dims=("assay_well", "cutinase_cycle"),
         )
 
