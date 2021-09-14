@@ -8,11 +8,16 @@ import pandas
 import retl
 
 
-def read_nitrophenol_calibration(dp_run: os.PathLike):
+def read_nitrophenol_calibration(dp_run: os.PathLike, repetition=None):
     """Parse Nitrophenol calibration data into DataFrame for calibr8 model."""
-    df_standards = retl.parse(pathlib.Path(dp_run, "Cutinase_Standard.xml"))[
-        "Label1_Copy1"
-    ].value
+    if type(repetition)==int: 
+        df_standards = retl.parse(pathlib.Path(dp_run, f"Cutinase_Standard_{repetition}.xml"))[
+            "Label1_Copy1"
+        ].value
+    else:
+        df_standards = retl.parse(pathlib.Path(dp_run, "Cutinase_Standard.xml"))[
+            "Label1_Copy1"
+        ].value
 
     # concentrations of triplicates, ordered Fortran style:
     standard_concentrations = pandas.read_excel(
@@ -41,9 +46,13 @@ def read_nitrophenol_calibration(dp_run: os.PathLike):
 
 def read_cutinase(
     dp_run: os.PathLike,
+    repetition=None
 ) -> pandas.DataFrame:
     """Parse cutinase data into DataFrame."""
-    samples = retl.parse(pathlib.Path(dp_run, "Cutinase_Sample.xml"))
+    if type(repetition)==int: 
+        samples = retl.parse(pathlib.Path(dp_run, f"Cutinase_Sample_{repetition}.xml"))
+    else:
+        samples = retl.parse(pathlib.Path(dp_run, f"Cutinase_Sample.xml"))
     df_value = samples["Label1_Copy1"].value
     # Time in minutes and not in hours
     df_time = samples["Label1_Copy1"].time * 60

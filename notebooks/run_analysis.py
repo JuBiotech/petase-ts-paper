@@ -31,8 +31,8 @@ class CutisplitAnalysis():
         self.DP_RUN = pathlib.Path(rf"\\IBT705\DATA\CM\{self.dcs_experiment}\{self.run_id}")
         pass
 
-    def get_df_calibration(self):
-        df_calibration = cutisplit.read_nitrophenol_calibration(self.DP_RUN)
+    def get_df_calibration(self, repetition=None):
+        df_calibration = cutisplit.read_nitrophenol_calibration(self.DP_RUN, repetition=repetition)
         return df_calibration
 
 
@@ -81,8 +81,8 @@ class CutisplitAnalysis():
         return df_inputs
 
 
-    def get_df_cutinase(self):
-        df_cutinase = cutisplit.read_cutinase(self.DP_RUN)
+    def get_df_cutinase(self, repetition=None):
+        df_cutinase = cutisplit.read_cutinase(self.DP_RUN, repetition=repetition)
         return df_cutinase
 
 
