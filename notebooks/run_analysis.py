@@ -36,28 +36,48 @@ class CutisplitAnalysis():
         return df_calibration
 
 
-    def get_df_inputs(self):
+    def get_df_inputs(self, standards=False):
         """ Construct a DataFrame of cutinase concentration factors in the "standards"
         """
         # the standards were located in columns [1-3] of the "samples" DWP
         # they were copied into [4-6] within the "samples" DWP
         # and again copied into [7-12] of the assay plate
-        plan = robotools.DilutionPlan(
-            xmin=0.01, xmax=1,
-            R=8, C=3,
-            stock=1,
-            mode="log",
-            vmax=950,
-            min_transfer=30
-        )
+        if standards:
+            plan = robotools.DilutionPlan(
+                xmin=0.01, xmax=1,
+                R=8, C=3,
+                stock=1,
+                mode="log",
+                vmax=950,
+                min_transfer=30
+            )
 
-        df_inputs = pandas.DataFrame(
-            columns=["input_well", "type", "concentration_factor"]
-        ).set_index("input_well")
-        for ir, r in enumerate("ABCDEFGH"):
-            for ic, c in enumerate([1,2,3,4,5,6]):
-                df_inputs.loc[f"{r}{c:02d}", "type"] = f"reference"
-                df_inputs.loc[f"{r}{c:02d}", "concentration_factor"] = plan.x[ir, ic % 3]
+            df_inputs = pandas.DataFrame(
+                columns=["input_well", "type", "concentration_factor"]
+            ).set_index("input_well")
+            for ir, r in enumerate("ABCDEFGH"):
+                for ic, c in enumerate([1,2,3,4,5,6]):
+                    df_inputs.loc[f"{r}{c:02d}", "type"] = "reference"
+                    df_inputs.loc[f"{r}{c:02d}", "concentration_factor"] = plan.x[ir, ic % 3]
+        else:
+            mtp_wells = numpy.array([
+                f"{l}{n:02d}" 
+                for l in "ABCDEFGH" 
+                for n in range(1,7)
+            ]).reshape(8,6)
+            strains = pandas.read_excel(
+                f"{self.DP_RUN}\Wells_Assay.xlsx", 
+                sheet_name="MTP", 
+                index_col=0
+            ).values[:,:6]
+            df_inputs = pandas.DataFrame(
+                        columns=["input_well", "type", "concentration_factor"]
+                    ).set_index("input_well")
+
+            for well, strain in zip(mtp_wells.flatten(), strains.flatten()):
+                if strain != "water":
+                    df_inputs.loc[well, "type"] = strain
+                    df_inputs.loc[well, "concentration_factor"] = 1
         return df_inputs
 
 
