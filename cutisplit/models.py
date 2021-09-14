@@ -5,7 +5,7 @@ import calibr8
 import numpy
 import pandas
 import pymc3
-import theano.tensor as tt
+import aesara.tensor as at
 
 from .utils import replicate_wells_from
 
@@ -103,7 +103,7 @@ def _add_or_assert_coords(
         if cname in pmodel.coords:
             numpy.testing.assert_array_equal(pmodel.coords[cname], cvalues)
         else:
-            pmodel.coords[cname] = cvalues
+            pmodel.add_coord(name=cname, values=cvalues)
 
 
 class CombinedModel:
@@ -193,13 +193,13 @@ class CombinedModel:
         )
         cf_cutinase_assay = pymc3.Lognormal(
             "cf_cutinase_assay",
-            mu=tt.log(tt.concatenate([cf_input] * 2)),
+            mu=at.log(at.concatenate([cf_input] * 2)),
             sd=self.sd_cutinase,
             dims=("assay_well",),
         )
         cf_sgfp_assay = pymc3.Lognormal(
             "cf_sgfp_assay",
-            mu=tt.log(tt.concatenate([cf_input] * 2)),
+            mu=at.log(at.concatenate([cf_input] * 2)),
             sd=self.sd_cutinase,
             dims=("assay_well",),
         )
@@ -223,7 +223,7 @@ class CombinedModel:
         # For the cutinase assay, we introduce the specific enzyme activity in the supernatant [µmol/mL/min].
         # Again, we assume one undiluted activity and calculate the activities in the sample/replicate wells
         # deterministically from the relative concentrations above.
-        k = pymc3.HalfFlat("k", dims=("type",))
+        k = pymc3.HalfNormal("k", sd=3, dims=("type",), initval=numpy.ones(len(pmodel.coords["type"])))
         # The inputs are diluted 500x into the assay.
         dilution_factor = pymc3.Data("dilution_factor", 72)
         k_assay = pymc3.Deterministic(
@@ -242,7 +242,7 @@ class CombinedModel:
 
         product_concentration = pymc3.Deterministic(
             "product_concentration",
-            S0 * (1 - tt.exp(-k_assay[:, None] * cutinase_time )),
+            S0 * (1 - at.exp(-k_assay[:, None] * cutinase_time )),
             dims=("assay_well", "cutinase_cycle"),
         )
         absorbance_intercept = pymc3.Normal("absorbance_intercept", mu=self.cm_nitrophenol.theta_fitted[0], sd=1, dims=("assay_well"))
@@ -285,7 +285,7 @@ class CombinedModel:
         )
         sgfp_time_lag_wells = pymc3.Deterministic(
             "sgfp_time_lag_wells",
-            tt.stack(
+            at.stack(
                 [
                     sgfp_time_lag_cols[assay_column.index(w[1:])]
                     for w in pmodel.coords["assay_well"]
@@ -301,7 +301,7 @@ class CombinedModel:
 
         # fluorescence limits =^= cutinase amount
         # fmax = fluorescence capacity in undiluted supernatant
-        fmax = pymc3.Lognormal("fmax", numpy.log(700), sd=1, dims=("type",))
+        fmax = pymc3.Lognormal("fmax", mu=numpy.log(700), sd=1, dims=("type",))
         # fmax_assay = fluorescence capacity in diluted assay well
         fmax_assay = pymc3.Deterministic(
             "fmax_assay", cf_sgfp_assay * fmax[self._type_indices], dims=("assay_well",)
@@ -312,19 +312,19 @@ class CombinedModel:
         tau = sgfp_ht_assembly / numpy.log(2)
         sgfp_assembled_fraction = pymc3.Deterministic(
             "sgfp_assembled_fraction",
-            (1 - tt.exp(-sgfp_time / tau)),
+            (1 - at.exp(-sgfp_time / tau)),
             dims=("assay_well", "sgfp_cycle"),
         )
 
         # exponential decay:
         sgfp_ht_decay = pymc3.HalfNormal("sgfp_ht_decay", 20)
         sgfp_ht_decay_assay = pymc3.Lognormal(
-            "sgfp_ht_decay_assay", tt.log(sgfp_ht_decay), sd=0.5, dims=("assay_well",)
+            "sgfp_ht_decay_assay", at.log(sgfp_ht_decay), sd=0.5, dims=("assay_well",)
         )
         tau_decay = sgfp_ht_decay_assay / numpy.log(2)
         sgfp_decay = pymc3.Deterministic(
             "sgfp_decay",
-            (tt.exp(-sgfp_time / tau_decay[:, None])),
+            (at.exp(-sgfp_time / tau_decay[:, None])),
             dims=("assay_well", "sgfp_cycle"),
         )
 
