@@ -238,24 +238,26 @@ class CombinedModel:
         )
         #P0 = pymc3.Uniform("P0", 0, 0.4, dims=("assay_well",))
         S0 = pymc3.Uniform("S0", 0.5, 0.7) #truth should be 0.662 mM
-        time_delay = pymc3.HalfNormal("time_delay", sd=5, dims=("assay_well"))
+        #time_delay = pymc3.Normal("time_delay", sd=2, dims=("assay_well"))
 
         product_concentration = pymc3.Deterministic(
             "product_concentration",
-            S0 * (1 - tt.exp(-k_assay[:, None] * (cutinase_time + time_delay[:, None]))),
+            S0 * (1 - tt.exp(-k_assay[:, None] * cutinase_time )),
             dims=("assay_well", "cutinase_cycle"),
         )
+        absorbance_intercept = pymc3.Normal("absorbance_intercept", mu=self.cm_nitrophenol.theta_fitted[0], sd=1, dims=("assay_well"))
 
         # The reaction product (4-nitrophenol) is measured in [mmol/L] = [µmol/mL] via the error model.
         # Our prediction is also in µmol/mL.
         absorbance = pymc3.Data(
-            "cutinase_absorbance", y_obs, dims=("assay_well", "cutinase_cycle")
+            "cutinase_absorbance", y_obs , dims=("assay_well", "cutinase_cycle")
         )
         L_cut = self.cm_nitrophenol.loglikelihood(
             y=absorbance,
             x=product_concentration,
             replicate_id="cutinase_all",
             dependent_key=self.cm_nitrophenol.dependent_key,
+            theta=[absorbance_intercept[:, None], *self.cm_nitrophenol.theta_fitted[1:]]
         )
         return
 
