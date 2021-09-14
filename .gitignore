@@ -517,3 +517,4 @@ MigrationBackup/
 
 *.vscode/settings.json
 *.zip
+notebooks/*_Results/*

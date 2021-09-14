@@ -182,8 +182,8 @@ class CombinedModel:
         _add_or_assert_coords(
             {
                 "type": list(sorted(set(df_inputs.type))),
-                "input_well": df_inputs.index.values,
-                "assay_well": numpy.array(replicate_wells_from(df_inputs.index)),
+                "input_well": numpy.array(df_inputs.index.to_numpy(dtype=str)),
+                "assay_well": replicate_wells_from(df_inputs.index),
             },
             pmodel,
         )
@@ -223,12 +223,12 @@ class CombinedModel:
         # For the cutinase assay, we introduce the specific enzyme activity in the supernatant [µmol/mL/min].
         # Again, we assume one undiluted activity and calculate the activities in the sample/replicate wells
         # deterministically from the relative concentrations above.
-        vmax = pymc3.HalfFlat("vmax", dims=("type",))
+        k = pymc3.HalfFlat("k", dims=("type",))
         # The inputs are diluted 500x into the assay.
-        dilution_factor = pymc3.Data("dilution_factor", 500)
-        vmax_assay = pymc3.Deterministic(
-            "vmax_assay",
-            cf_cutinase_assay * vmax[self._type_indices] / dilution_factor,
+        dilution_factor = pymc3.Data("dilution_factor", 72)
+        k_assay = pymc3.Deterministic(
+            "k_assay",
+            cf_cutinase_assay * k[self._type_indices] / dilution_factor,
             dims=("assay_well",),
         )
 
@@ -236,23 +236,28 @@ class CombinedModel:
         cutinase_time = pymc3.Data(
             "cutinase_time", t_obs, dims=("assay_well", "cutinase_cycle")
         )
-        P0 = pymc3.Uniform("P0", -0.5, 1, dims=("assay_well",))
+        #P0 = pymc3.Uniform("P0", 0, 0.4, dims=("assay_well",))
+        S0 = pymc3.Uniform("S0", 0.5, 0.7) #truth should be 0.662 mM
+        #time_delay = pymc3.Normal("time_delay", sd=2, dims=("assay_well"))
+
         product_concentration = pymc3.Deterministic(
             "product_concentration",
-            P0[:, None] + vmax_assay[:, None] * cutinase_time,
+            S0 * (1 - tt.exp(-k_assay[:, None] * cutinase_time )),
             dims=("assay_well", "cutinase_cycle"),
         )
+        absorbance_intercept = pymc3.Normal("absorbance_intercept", mu=self.cm_nitrophenol.theta_fitted[0], sd=1, dims=("assay_well"))
 
         # The reaction product (4-nitrophenol) is measured in [mmol/L] = [µmol/mL] via the error model.
         # Our prediction is also in µmol/mL.
         absorbance = pymc3.Data(
-            "cutinase_absorbance", y_obs, dims=("assay_well", "cutinase_cycle")
+            "cutinase_absorbance", y_obs , dims=("assay_well", "cutinase_cycle")
         )
         L_cut = self.cm_nitrophenol.loglikelihood(
             y=absorbance,
             x=product_concentration,
             replicate_id="cutinase_all",
             dependent_key=self.cm_nitrophenol.dependent_key,
+            theta=[absorbance_intercept[:, None], *self.cm_nitrophenol.theta_fitted[1:]]
         )
         return
 
