@@ -182,8 +182,8 @@ class CombinedModel:
         _add_or_assert_coords(
             {
                 "type": list(sorted(set(df_inputs.type))),
-                "input_well": df_inputs.index.values,
-                "assay_well": numpy.array(replicate_wells_from(df_inputs.index)),
+                "input_well": numpy.array(df_inputs.index.to_numpy(dtype=str)),
+                "assay_well": replicate_wells_from(df_inputs.index),
             },
             pmodel,
         )
@@ -225,7 +225,7 @@ class CombinedModel:
         # deterministically from the relative concentrations above.
         vmax = pymc3.HalfFlat("vmax", dims=("type",))
         # The inputs are diluted 500x into the assay.
-        dilution_factor = pymc3.Data("dilution_factor", 500)
+        dilution_factor = pymc3.Data("dilution_factor", 72)
         vmax_assay = pymc3.Deterministic(
             "vmax_assay",
             cf_cutinase_assay * vmax[self._type_indices] / dilution_factor,
@@ -236,10 +236,11 @@ class CombinedModel:
         cutinase_time = pymc3.Data(
             "cutinase_time", t_obs, dims=("assay_well", "cutinase_cycle")
         )
-        P0 = pymc3.Uniform("P0", -0.5, 1, dims=("assay_well",))
+        P0 = pymc3.Uniform("P0", 0, 1, dims=("assay_well",))
+        S0 = pymc3.Uniform("S0", 0.5, 0.7, dims=("assay_well",)) #truth should be 0.662 mM
         product_concentration = pymc3.Deterministic(
             "product_concentration",
-            P0[:, None] + vmax_assay[:, None] * cutinase_time,
+            P0[:, None] + S0 * (1 - tt.exp(-vmax_assay[:, None] * cutinase_time)),
             dims=("assay_well", "cutinase_cycle"),
         )
 
