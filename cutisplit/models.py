@@ -460,7 +460,7 @@ class LongFormModel:
         )
 
         cf_input = pymc3.Data(
-            "cf_input", self.df_kinetics.concentration_factor.to_numpy(dtype=float), dims=("kinetic_id",)
+            "cf_input", self.df_kinetics.concentration_factor.to_numpy(dtype=int), dims=("kinetic_id",)
         )
         cf_cutinase_assay = pymc3.Lognormal(
             "cf_cutinase_assay",
@@ -490,18 +490,34 @@ class LongFormModel:
         # Again, we assume one undiluted activity and calculate the activities in the sample/replicate wells
         # deterministically from the relative concentrations above.
         k = pymc3.HalfNormal("k", sd=3, dims=("strain",), )
-        k_batch = pymc3.Lognormal(
-            "k_batch",
-            mu=at.log(k[self.idx_CIDtoS]),
+        # k_batch = pymc3.Lognormal(
+        #     "k_batch",
+        #     mu=at.log(k[self.idx_CIDtoS]),
+        #     sd=0.1,
+        #     dims=("culture_id")
+        # )
+        batch_effect = pymc3.Lognormal(
+            "batch_effect",
+            mu=0,
             sd=0.1,
             dims=("culture_id")
         )
+        k_batch = pymc3.Deterministic(
+            "k_batch",
+            k[self.idx_CIDtoS] * batch_effect,
+            dims=("culture_id")
+        )
         # The inputs are diluted 500x into the assay.
-        dilution_factor = pymc3.Data("dilution_factor", 72)
-        k_assay = pymc3.Lognormal(
-            "k_assay",
-            mu=at.log(cf_cutinase_assay * k_batch[self.idx_KIDtoCID] / dilution_factor),
+        dilution_factor = 72 #pymc3.Data("dilution_factor", 72)
+        assay_effect = pymc3.Lognormal(
+            "assay_effect",
+            mu=0,
             sd=0.05,
+            dims=("kinetic_id")
+        )
+        k_assay = pymc3.Deterministic(
+            "k_assay",
+            cf_cutinase_assay * k_batch[self.idx_KIDtoCID] * assay_effect / dilution_factor,
             dims=("kinetic_id",),
         )
 
@@ -510,7 +526,7 @@ class LongFormModel:
             "cutinase_time", t_obs, dims=("kinetic_id", "cutinase_cycle")
         )
         #P0 = pymc3.Uniform("P0", 0, 0.4, dims=("assay_well",))
-        S0 = pymc3.Uniform("S0", 0.5, 0.7) #truth should be 0.662 mM
+        S0 = pymc3.Lognormal("S0", mu=numpy.log(0.662), sd=0.2) #truth should be 0.662 mM
         #time_delay = pymc3.Normal("time_delay", sd=2, dims=("assay_well"))
 
         product_concentration = pymc3.Deterministic(
