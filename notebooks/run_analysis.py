@@ -25,7 +25,6 @@ class CutisplitAnalysis():
         
     """
     def __init__(self, dcs_experiment, run_id):
-        
         self.run_id = run_id
         self.dcs_experiment = dcs_experiment
         self.DP_RUN = pathlib.Path(rf"\\IBT705\DATA\CM\{self.dcs_experiment}\{self.run_id}")
@@ -53,11 +52,11 @@ class CutisplitAnalysis():
             )
 
             df_inputs = pandas.DataFrame(
-                columns=["input_well", "type", "concentration_factor"]
+                columns=["input_well", "strain", "concentration_factor"]
             ).set_index("input_well")
             for ir, r in enumerate("ABCDEFGH"):
                 for ic, c in enumerate([1,2,3,4,5,6]):
-                    df_inputs.loc[f"{r}{c:02d}", "type"] = "reference"
+                    df_inputs.loc[f"{r}{c:02d}", "strain"] = "reference"
                     df_inputs.loc[f"{r}{c:02d}", "concentration_factor"] = plan.x[ir, ic % 3]
         else:
             mtp_wells = numpy.array([
@@ -71,12 +70,12 @@ class CutisplitAnalysis():
                 index_col=0
             ).values[:,:6]
             df_inputs = pandas.DataFrame(
-                        columns=["input_well", "type", "concentration_factor"]
+                        columns=["input_well", "strain", "concentration_factor"]
                     ).set_index("input_well")
 
             for well, strain in zip(mtp_wells.flatten(), strains.flatten()):
                 if strain != "water":
-                    df_inputs.loc[well, "type"] = strain
+                    df_inputs.loc[well, "strain"] = strain
                     df_inputs.loc[well, "concentration_factor"] = 1
         return df_inputs
 
@@ -91,3 +90,46 @@ class CutisplitAnalysis():
         print("!! Overriding t0_delta with 0.25 hours !!")
         t0_delta = 0.25
         return df_sgfp, t0_delta
+
+
+def read_repetition(run_id, repetition, *, dcs_experiment="Pahpshmir_MTP-Screening-PETase"):
+    rotator = robotools.WellRotator(original_shape=(8,6))
+    analyser = CutisplitAnalysis(dcs_experiment=dcs_experiment, run_id=run_id)
+    df_inputs = analyser.get_df_inputs().dropna().drop(columns=["concentration_factor"])
+    df_inputs["fp_well"] = rotator.rotate_cw(df_inputs.index)
+    df_inputs.reset_index(inplace=True)
+    df_inputs.index = pandas.Index([f"{run_id}_{fp_well}" for fp_well in df_inputs.fp_well], name="culture_id")
+    df_inputs.rename(columns={"input_well": "supernatant_well"}, inplace=True)
+    df_cutinase = analyser.get_df_cutinase(repetition=repetition)
+    df_kinetics = pandas.DataFrame(columns=["culture_id", "assay_well", "time", "value", "concentration_factor"])
+    for row in df_inputs.itertuples():
+        culture_ID = row.Index
+        assay_wells = cutisplit.utils.replicate_wells_from([row.supernatant_well])
+        for assay_well in assay_wells:
+            df_kinetics.loc[f"{run_id}_{repetition}_{assay_well}"] = (
+                str(culture_ID), 
+                str(assay_well),
+                df_cutinase.loc[assay_well, "time"].to_numpy(dtype=float),
+                df_cutinase.loc[assay_well, "value"].to_numpy(dtype=float),
+                1 #TODO: adapt if necessary!
+            )
+    return df_inputs, df_kinetics
+
+
+def read_rounds(run_ids, dcs_experiment="Pahpshmir_MTP-Screening-PETase"):
+    dfs_kinetics = []
+    dfs_inputs = []
+    for run_id in run_ids:
+        for i in range(1,50):
+            try:
+                dfi, dfk = read_repetition(run_id, i, dcs_experiment=dcs_experiment)
+                dfi = [dfi]
+                dfk = [dfk]
+                dfs_kinetics += dfk
+            except FileNotFoundError:
+                pass
+            if i == 1:
+                dfs_inputs += dfi
+    df_kinetics = pandas.concat(dfs_kinetics)
+    df_inputs = pandas.concat(dfs_inputs)
+    return df_inputs, df_kinetics
