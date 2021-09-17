@@ -1,9 +1,11 @@
 import logging
 import typing
 
+import bletl
 import calibr8
 import numpy
 import pandas
+import pickle
 import pymc3
 import aesara.tensor as at
 
@@ -20,6 +22,70 @@ class NitrophenolAbsorbanceModel(calibr8.BasePolynomialModelT):
             mu_degree=1,
             scale_degree=1,
         )
+
+
+class SplineCalibration(calibr8.BaseModelT):
+    def __init__(self):
+        self.spline = None
+        self.spline_op = None
+        super().__init__(
+            independent_key="concentation",
+            dependent_key="absorbance",
+            theta_names=["scale0", "scale1", "df"],
+        )
+        
+    def set_spline(self, spline):
+        self.spline = spline
+        self.spline_op = pymc3.distributions.dist_math.SplineWrapper(spline)
+        return
+        
+    def predict_dependent(self, x, *, theta=None):
+        """Predicts the parameters mu and scale of a student-t-distribution which
+        characterizes the dependent variable given values of the independent variable.
+        Parameters
+        ----------
+        x : array-like
+            values of the independent variable
+        theta : optional, array-like
+            parameter vector of the calibration model:
+                [mu_degree] parameters for mu (lowest degree first)
+                [scale_degree] parameters for scale (lowest degree first)
+                1 parameter for degree of freedom
+        Returns
+        -------
+        mu : array-like
+            values for the mu parameter of a student-t-distribution describing the dependent variable
+        scale : array-like or float
+            values for the scale parameter of a student-t-distribution describing the dependent variable
+        df : float
+            degree of freedom of student-t-distribution
+        """
+        if theta is None:
+            theta = self.theta_fitted
+        if calibr8.istensor(x):
+            mu = self.spline_op(x)
+        else:
+            mu = self.spline(x)
+        scale = calibr8.polynomial(mu, theta=theta[:-1])
+        df = theta[-1]
+        return mu, scale, df
+
+    def predict_independent(self, y, *, theta=None):
+        raise NotImplementedError()
+    
+    def save(self, fp):
+        with open(str(fp).replace("json", "pkl"), "wb") as pfile:
+            pickle.dump(self.spline, pfile)
+        return super().save(fp)
+        
+    @classmethod
+    def load(self, fp):
+        cm = super().load(fp)
+        with open(str(fp).replace("json", "pkl"), "rb") as pfile:
+            spline = pickle.load(pfile)
+        cm.set_spline(spline)
+        return cm
+
 
 
 def _validate_df_inputs(df_inputs) -> pandas.DataFrame:
