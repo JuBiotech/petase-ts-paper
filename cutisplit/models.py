@@ -393,11 +393,15 @@ class CombinedModel:
             (at.exp(-sgfp_time / tau_decay[:, None])),
             dims=("assay_well", "sgfp_cycle"),
         )
-
+        # autofluorescence at the beginning
+        auto_fluor = pymc3.Lognormal(
+            "auto_fluorescence", mu=numpy.log(1000), sd=1, dims=("assay_well")
+        )
         # the final fluorescence depends on the well-wise fluorescence capacity, aggregration and decay
         sgfp_fluorescence_pred = pymc3.Deterministic(
             "sgfp_fluorescence_pred",
-            fmax_assay[:, None] * sgfp_assembled_fraction * sgfp_decay,
+            #TODO: autofluorescence decay separately
+            auto_fluor[:, None] + fmax_assay[:, None] * sgfp_assembled_fraction * sgfp_decay,
             dims=("assay_well", "sgfp_cycle"),
         )
 
@@ -592,7 +596,7 @@ class LongFormModel:
             "cutinase_time", t_obs, dims=("kinetic_id", "cutinase_cycle")
         )
         #P0 = pymc3.Uniform("P0", 0, 0.4, dims=("assay_well",))
-        S0 = pymc3.Lognormal("S0", mu=numpy.log(0.662), sd=0.2) #truth should be 0.662 mM
+        S0 = pymc3.Uniform("S0", 0.5, 0.7) #truth should be 0.662 mM
         #time_delay = pymc3.Normal("time_delay", sd=2, dims=("assay_well"))
 
         product_concentration = pymc3.Deterministic(
@@ -600,7 +604,7 @@ class LongFormModel:
             S0 * (1 - at.exp(-k_assay[:, None] * cutinase_time )),
             dims=("kinetic_id", "cutinase_cycle"),
         )
-        absorbance_intercept = pymc3.Normal("absorbance_intercept", mu=self.cm_nitrophenol.theta_fitted[0], sd=1, dims=("kinetic_id"))
+        absorbance_intercept = pymc3.Normal("absorbance_intercept", mu=self.cm_nitrophenol.theta_fitted[0], sd=0.1, dims=("kinetic_id"))
 
         # The reaction product (4-nitrophenol) is measured in [mmol/L] = [µmol/mL] via the error model.
         # Our prediction is also in µmol/mL.
