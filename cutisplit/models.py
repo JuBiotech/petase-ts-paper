@@ -393,15 +393,12 @@ class CombinedModel:
             (at.exp(-sgfp_time / tau_decay[:, None])),
             dims=("assay_well", "sgfp_cycle"),
         )
-        # autofluorescence at the beginning
-        auto_fluor = pymc3.Lognormal(
-            "auto_fluorescence", mu=numpy.log(1000), sd=1, dims=("assay_well")
-        )
+        
         # the final fluorescence depends on the well-wise fluorescence capacity, aggregration and decay
         sgfp_fluorescence_pred = pymc3.Deterministic(
             "sgfp_fluorescence_pred",
             #TODO: autofluorescence decay separately
-            auto_fluor[:, None] + fmax_assay[:, None] * sgfp_assembled_fraction * sgfp_decay,
+            fmax_assay[:, None] * sgfp_assembled_fraction * sgfp_decay,
             dims=("assay_well", "sgfp_cycle"),
         )
 
