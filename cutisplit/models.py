@@ -455,17 +455,8 @@ class LongFormModel:
             Columns: [time, value]
         cm_nitrophenol : calibr8.CalibrationModel
             The calibration model for 4-nitrophenol absorbance/concentration
-        df_sgfp : pandas.DataFrame
-            Observations of the split-GFP assay
-            Index: time_hours
-            Columns: assay well IDs
-        t0_delta : float
-            Time delay (in hours) between pipetting and first measurement of the split-GFP assay
         sd_cutinase : float
             Approximate pipetting error from input well to cutinase assay well.
-            0.1 ≙ 10 % relative error
-        sd_sgfp : float
-            Approximate pipetting error from input well to split-GFP assay well.
             0.1 ≙ 10 % relative error
         """
         #TODO: self.df_inputs = _validate_df_inputs(df_inputs.copy())
