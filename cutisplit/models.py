@@ -513,11 +513,11 @@ class LongFormModel:
         assert max(self.idx_KIDtoCID) == len(culture_ids) - 1
 
         self.idx_KIDtoCOID = [
-            row.assay_column - 1
+            column_ids.index(row.assay_column)
             for row in self.df_kinetics.loc[kinetic_ids].itertuples()
         ]
         assert numpy.shape(self.idx_KIDtoCOID) == (len(kinetic_ids),), f"{numpy.shape(self.idx_KIDtoCOID)}, {len(kinetic_ids)}"
-        assert max(self.idx_KIDtoCOID) == len(column_ids) - 1
+        assert max(self.idx_KIDtoCOID) == len(column_ids) - 1, f"{max(self.idx_KIDtoCOID)}, {len(column_ids)}"
 
         # Now create "coords" that describe the relevant dimensions
         _add_or_assert_coords(
