@@ -101,7 +101,7 @@ def read_repetition(run_id, repetition, *, dcs_experiment="Pahpshmir_MTP-Screeni
     df_inputs.index = pandas.Index([f"{run_id}_{fp_well}" for fp_well in df_inputs.fp_well], name="culture_id")
     df_inputs.rename(columns={"input_well": "supernatant_well"}, inplace=True)
     df_cutinase = analyser.get_df_cutinase(repetition=repetition)
-    df_kinetics = pandas.DataFrame(columns=["culture_id", "assay_well", "time", "value", "concentration_factor"])
+    df_kinetics = pandas.DataFrame(columns=["culture_id", "assay_well", "assay_column", "time", "value", "concentration_factor"])
     for row in df_inputs.itertuples():
         culture_ID = row.Index
         assay_wells = cutisplit.utils.replicate_wells_from([row.supernatant_well])
@@ -109,6 +109,7 @@ def read_repetition(run_id, repetition, *, dcs_experiment="Pahpshmir_MTP-Screeni
             df_kinetics.loc[f"{run_id}_{repetition}_{assay_well}"] = (
                 str(culture_ID), 
                 str(assay_well),
+                int(assay_well[-2:]),
                 df_cutinase.loc[assay_well, "time"].to_numpy(dtype=float),
                 df_cutinase.loc[assay_well, "value"].to_numpy(dtype=float),
                 1 #TODO: adapt if necessary!

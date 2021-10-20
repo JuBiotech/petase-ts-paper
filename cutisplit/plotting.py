@@ -2,7 +2,7 @@ import arviz
 import ipywidgets
 import numpy
 try:
-import pymc3
+    import pymc3
 except:
     import pymc as pymc3
 from matplotlib import pyplot

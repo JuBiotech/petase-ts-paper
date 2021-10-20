@@ -7,7 +7,7 @@ import numpy
 import pandas
 import pickle
 try:
-import pymc3
+    import pymc3
 except:
     import pymc as pymc3
 import aesara.tensor as at
@@ -497,10 +497,12 @@ class LongFormModel:
         strains = list(sorted(set(df_inputs.strain)))
         culture_ids = list(sorted(set(df_inputs.index.to_numpy(dtype=str))))
         kinetic_ids = list(sorted(set(self.df_kinetics.index.to_numpy(dtype=str))))
+        column_ids = list(sorted(set(self.df_kinetics.assay_column.to_numpy(dtype=int))))
 
         S = "strain"
         CID = "culture_id"
         KID = "kinetic_id"
+        COID = "column_id"
 
         # The model describes the data in the "long form". It needs some lists for indexing to map
         # between variables of different dimensionality.
@@ -519,12 +521,20 @@ class LongFormModel:
         assert numpy.shape(self.idx_KIDtoCID) == (len(kinetic_ids),), f"{numpy.shape(self.idx_KIDtoCID)}, {len(kinetic_ids)}"
         assert max(self.idx_KIDtoCID) == len(culture_ids) - 1
 
+        self.idx_KIDtoCOID = [
+            row.assay_column - 1
+            for row in self.df_kinetics.loc[kinetic_ids].itertuples()
+        ]
+        assert numpy.shape(self.idx_KIDtoCOID) == (len(kinetic_ids),), f"{numpy.shape(self.idx_KIDtoCOID)}, {len(kinetic_ids)}"
+        assert max(self.idx_KIDtoCOID) == len(column_ids) - 1
+
         # Now create "coords" that describe the relevant dimensions
         _add_or_assert_coords(
             {
                 "strain": numpy.array(strains, dtype=str),
                 "culture_id": numpy.array(culture_ids, dtype=str),
-                "kinetic_id": numpy.array(kinetic_ids, dtype=str)
+                "kinetic_id": numpy.array(kinetic_ids, dtype=str),
+                "column_id": numpy.array(column_ids, dtype=int)
             },
             pmodel,
         )
@@ -569,7 +579,7 @@ class LongFormModel:
         batch_effect = pymc3.Lognormal(
             "batch_effect",
             mu=0,
-            sd=0.1,
+            sd=0.3,
             dims=("culture_id")
         )
         k_batch = pymc3.Deterministic(
@@ -578,16 +588,16 @@ class LongFormModel:
             dims=("culture_id")
         )
         # The inputs are diluted 500x into the assay.
-        dilution_factor = 72 #pymc3.Data("dilution_factor", 72)
+        dilution_factor = pymc3.Data("dilution_factor", 72)
         assay_effect = pymc3.Lognormal(
             "assay_effect",
             mu=0,
-            sd=0.05,
-            dims=("kinetic_id")
+            sd=0.1,
+            dims=("column_id")
         )
         k_assay = pymc3.Deterministic(
             "k_assay",
-            cf_cutinase_assay * k_batch[self.idx_KIDtoCID] * assay_effect / dilution_factor,
+            cf_cutinase_assay * k_batch[self.idx_KIDtoCID] * assay_effect[self.idx_KIDtoCOID] / dilution_factor,
             dims=("kinetic_id",),
         )
 
