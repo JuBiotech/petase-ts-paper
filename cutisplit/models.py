@@ -6,7 +6,10 @@ import calibr8
 import numpy
 import pandas
 import pickle
+try:
 import pymc3
+except:
+    import pymc as pymc3
 import aesara.tensor as at
 
 from .utils import replicate_wells_from

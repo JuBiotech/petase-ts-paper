@@ -1,7 +1,10 @@
 import arviz
 import ipywidgets
 import numpy
+try:
 import pymc3
+except:
+    import pymc as pymc3
 from matplotlib import pyplot
 
 from .utils import replicate_wells_from
