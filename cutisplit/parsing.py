@@ -21,7 +21,7 @@ def read_nitrophenol_calibration(dp_run: os.PathLike, repetition=None):
 
     # concentrations of triplicates, ordered Fortran style:
     standard_concentrations = pandas.read_excel(
-        pathlib.Path(dp_run, "Wells.xlsx"), sheet_name="Cutinase_Standard"
+        pathlib.Path(dp_run, "Wells_Assay.xlsx"), sheet_name="Cutinase_Standard"
     )["Concentration"].values.clip(0.0001)
     # numpy magic to expand it into the same shape as the wells:
     standard_concentrations = numpy.repeat(
