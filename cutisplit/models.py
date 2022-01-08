@@ -531,7 +531,7 @@ class LongFormModel:
         )
 
         cf_input = pymc3.Data(
-            "cf_input", self.df_kinetics.concentration_factor.to_numpy(dtype=int), dims=("kinetic_id",)
+            "cf_input", self.df_kinetics.concentration_factor.to_numpy(dtype=float), dims=("kinetic_id",)
         )
         cf_cutinase_assay = pymc3.Lognormal(
             "cf_cutinase_assay",
