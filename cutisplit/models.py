@@ -618,6 +618,9 @@ class LongFormModel:
             name="cutinase_all",
             dims=("kinetic_id", "cutinase_cycle"),
             dependent_key=self.cm_nitrophenol.dependent_key,
+            # For unknown reasons the cutinase assay exhibits well-wise shifts in the intercept.
+            # Replacing the intercept parameter with a vector-tensor essentially gives calibration
+            # models for each well, such that they can have independent intercepts.
             theta=[absorbance_intercept[:, None], *self.cm_nitrophenol.theta_fitted[1:]]
         )
         return
