@@ -27,7 +27,7 @@ class CutisplitAnalysis():
     def __init__(self, dcs_experiment, run_id):
         self.run_id = run_id
         self.dcs_experiment = dcs_experiment
-        self.DP_RUN = pathlib.Path(rf"\\IBT705\DATA\CM\{self.dcs_experiment}\{self.run_id}")
+        self.DP_RUN = pathlib.Path(rf"C:\Users\helleckes\TiGr_PETases\{self.dcs_experiment}\{self.run_id}")
         pass
 
     def get_df_calibration(self, repetition=None):
@@ -135,7 +135,7 @@ def read_repetition(run_id, repetition, *, dcs_experiment="Pahpshmir_MTP-Screeni
     return df_inputs, df_kinetics
 
 
-def read_rounds(run_ids, dcs_experiment="Pahpshmir_MTP-Screening-PETase"):
+def read_rounds(run_ids, dcs_experiment="TiGr_PETase_Screening"):
     dfs_kinetics = []
     dfs_inputs = []
     for run_id in run_ids:
