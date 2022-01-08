@@ -122,14 +122,24 @@ def read_repetition(run_id, repetition, *, dcs_experiment="Pahpshmir_MTP-Screeni
         shortened_strains.append(strain_rep.split("_")[0])
         assay_wells = analyser.get_assay_wells_for_strain(strain_rep)
         for assay_well in assay_wells:
-            df_kinetics.loc[f"{run_id}_{repetition}_{assay_well}"] = (
-                str(culture_ID), 
-                str(assay_well),
-                int(assay_well[-2:]),
-                df_cutinase.loc[assay_well, "time"].to_numpy(dtype=float),
-                df_cutinase.loc[assay_well, "value"].to_numpy(dtype=float),
-                1 #TODO: adapt if necessary!
-            )
+            if run_id == "C3C1XZ":
+                df_kinetics.loc[f"{run_id}_{repetition}_{assay_well}"] = (
+                    str(culture_ID), 
+                    str(assay_well),
+                    int(assay_well[-2:]),
+                    df_cutinase.loc[assay_well, "time"].to_numpy(dtype=float),
+                    df_cutinase.loc[assay_well, "value"].to_numpy(dtype=float),
+                    0.5 
+                )
+            else:
+                df_kinetics.loc[f"{run_id}_{repetition}_{assay_well}"] = (
+                    str(culture_ID), 
+                    str(assay_well),
+                    int(assay_well[-2:]),
+                    df_cutinase.loc[assay_well, "time"].to_numpy(dtype=float),
+                    df_cutinase.loc[assay_well, "value"].to_numpy(dtype=float),
+                    1 
+                )
     df_inputs["strain"] = shortened_strains
     df_inputs = df_inputs.drop(columns=["strain_rep"])
     return df_inputs, df_kinetics
