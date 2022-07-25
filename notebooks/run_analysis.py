@@ -1,3 +1,4 @@
+import logging
 import numpy
 from numpy.lib.function_base import _parse_input_dimensions
 import pandas
@@ -7,10 +8,10 @@ import typing
 import retl
 import robotools
 
-
 import cutisplit
 
 
+_log = logging.getLogger(__file__)
 class CutisplitAnalysis():
     """
     Convenience class to execute the general functions for cutisplit analysis.
@@ -86,11 +87,13 @@ class CutisplitAnalysis():
             sheet_name="MTP", 
             index_col=0
         )
-        df_wells = df_assay.where(df_assay == strain_rep).dropna(how="all").dropna(axis=1)
-        row = df_wells.index.values[0]
+        df_wells = df_assay.where(df_assay == strain_rep).dropna(how="all")
+        rows = df_wells.index.values
         assay_wells = [
-            f"{row}{number}"
-            for number in df_wells
+            f"{row}{number:02d}"
+            for row in rows
+            for number in range(1,13)
+            if not str(df_wells.loc[row][f"{number:02d}"]) == "nan"
         ]
         return assay_wells
 
@@ -156,7 +159,8 @@ def read_rounds(run_ids, dcs_experiment="TiGr_PETase_Screening"):
                 dfk = [dfk]
                 dfs_kinetics += dfk
             except FileNotFoundError:
-                pass
+                _log.warn(f"Error while reading the files. Repetition {i} does not exist and loop will be exited")
+                break
             if i == 1:
                 dfs_inputs += dfi
     df_kinetics = pandas.concat(dfs_kinetics)
