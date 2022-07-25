@@ -1,11 +1,8 @@
 import logging
 import numpy
-from numpy.lib.function_base import _parse_input_dimensions
+import os
 import pandas
 import pathlib
-import typing
-
-import retl
 import robotools
 
 import cutisplit
@@ -28,7 +25,7 @@ class CutisplitAnalysis():
     def __init__(self, dcs_experiment, run_id):
         self.run_id = run_id
         self.dcs_experiment = dcs_experiment
-        self.DP_RUN = pathlib.Path(rf"C:\Users\helleckes\TiGr_PETases\{self.dcs_experiment}\{self.run_id}")
+        self.DP_RUN = pathlib.Path(os.getcwd()).parent / "data"/ f"{self.dcs_experiment}\{self.run_id}"
         pass
 
     def get_df_calibration(self, repetition=None):
