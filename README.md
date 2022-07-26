@@ -1,6 +1,10 @@
 # Project for PETase secretion screening
 
-This projects provides the raw data, data analysis notebooks as well as figures for the manuscript __"Explore or exploit? A model-based screening strategy for PETase secretion by _Corynebacterium glutamicum_"__.
+[![DOI](https://zenodo.org/badge/518074824.svg)](https://zenodo.org/badge/latestdoi/518074824)
+
+This projects provides the raw data, data analysis notebooks as well as figures for the manuscript __"Explore or exploit? A model-based screening strategy for PETase secretion by _Corynebacterium glutamicum_"__ (2022) by Laura M. Helleckes*, Carolin Müller*, Tim Griesbach, Vera Waffenschmidt, Matthias Moch, Michael Osthege, Wolfgang Wiechert, Marco Oldiges.
+
+*These authors contributed equally.
 
 ## Structure
 Raw data can be found in the `data` folder. Data analysis is conducted in `data_analysis`. Plots for the accompanying paper can be found in `paper`.
@@ -27,4 +31,4 @@ Run CB4MNH was conducted after experimental improvements with tip wetting to sho
 
 ## Citation of code
 This repository and the corresponding Python package for data analysis (`cutisplit`) is licensed under the [GNU Affero General Public License v3.0](https://github.com/JuBiotech/petase-ts-paper/blob/main/LICENSE.md).
-Head over to Zenodo to generate a BibTeX citation for the latest release.
+Head over to [Zenodo](https://doi.org/10.5281/zenodo.6908128) to generate a BibTeX citation for the latest release.
