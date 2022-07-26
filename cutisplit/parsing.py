@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import pathlib
 import typing
@@ -6,6 +7,9 @@ import typing
 import numpy
 import pandas
 import retl
+
+
+_log = logging.getLogger(__file__)
 
 
 def read_nitrophenol_calibration(dp_run: os.PathLike, repetition=None):
@@ -21,7 +25,7 @@ def read_nitrophenol_calibration(dp_run: os.PathLike, repetition=None):
 
     # concentrations of triplicates, ordered Fortran style:
     standard_concentrations = pandas.read_excel(
-        pathlib.Path(dp_run, "Wells.xlsx"), sheet_name="Cutinase_Standard"
+        pathlib.Path(dp_run, "Wells_Assay.xlsx"), sheet_name="Cutinase_Standard"
     )["Concentration"].values.clip(0.0001)
     # numpy magic to expand it into the same shape as the wells:
     standard_concentrations = numpy.repeat(
@@ -50,9 +54,12 @@ def read_cutinase(
 ) -> pandas.DataFrame:
     """Parse cutinase data into DataFrame."""
     if type(repetition)==int: 
-        samples = retl.parse(pathlib.Path(dp_run, f"Cutinase_Sample_{repetition}.xml"))
+        path = pathlib.Path(dp_run, f"Cutinase_Sample_{repetition}.xml")
     else:
-        samples = retl.parse(pathlib.Path(dp_run, f"Cutinase_Sample.xml"))
+        path = pathlib.Path(dp_run, f"Cutinase_Sample.xml")
+    if not path.exists():
+        raise FileNotFoundError(f"Please put your xml File under {path}.")
+    samples = retl.parse(path)
     df_value = samples["Label1_Copy1"].value
     # Time in minutes and not in hours
     df_time = samples["Label1_Copy1"].time * 60
