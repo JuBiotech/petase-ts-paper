@@ -26,5 +26,5 @@ The results for the combined analysis can be found in the subfolders BZACW9 and 
 Run CB4MNH was conducted after experimental improvements with tip wetting to show that the previous bias in the columns of the assay MTP could be eradicated.
 
 ## Citation of code
-This repository and the corresponding Python package for data analysis (`cutisplit`) is licensed under the GNU Affero General Public License v3.0.
+This repository and the corresponding Python package for data analysis (`cutisplit`) is licensed under the [GNU Affero General Public License v3.0](https://github.com/JuBiotech/petase-ts-paper/blob/main/LICENSE.md).
 Head over to Zenodo to generate a BibTeX citation for the latest release.
