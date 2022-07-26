@@ -23,8 +23,8 @@ setuptools.setup(name = __packagename__,
         url='https://jugit.fz-juelich.de/IBG-1/m.osthege/cutisplit',
         download_url = 'https://jugit.fz-juelich.de/IBG-1/m.osthege/cutisplit/tarball/%s' % __version__,
         author='Michael Osthege, Laura Helleckes',
-        copyright='(c) 2021 Forschungszentrum Jülich GmbH',
-        license='(c) 2021 Forschungszentrum Jülich GmbH',
+        copyright='(c) 2022 Forschungszentrum Jülich GmbH',
+        license='(c) 2022 Forschungszentrum Jülich GmbH',
         classifiers= [
             'Programming Language :: Python',
             'Operating System :: OS Independent',
@@ -32,7 +32,7 @@ setuptools.setup(name = __packagename__,
             'Intended Audience :: Developers'
         ],
         install_requires=[
-            'pandas', 'numpy', 'python-dateutil', 'pymc3'
+            'pandas', 'numpy', 'python-dateutil', 'pymc'
         ]
 )
 
