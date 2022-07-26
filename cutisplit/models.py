@@ -75,7 +75,7 @@ class LongFormModel:
     def _model_concentrations(self):
         df_inputs = self.df_inputs
 
-        # First get a handle on the pymc model
+        # First get a handle on the PyMC model
         pmodel = pymc.modelcontext(None)
 
         # Now define the most important coords
@@ -127,10 +127,10 @@ class LongFormModel:
             pmodel,
         )
 
-        cf_input = pymc.Data(
+        cf_input = pymc.ConstantData(
             "cf_input", self.df_kinetics.concentration_factor.to_numpy(dtype=float), dims=("kinetic_id",)
         )
-        cf_cutinase_assay = pymc.Lognormal(
+        cf_cutinase_assay = pymc.LogNormal(
             "cf_cutinase_assay",
             mu=at.log(cf_input),
             sd=self.sd_cutinase,
@@ -158,7 +158,7 @@ class LongFormModel:
         # Again, we assume one undiluted activity and calculate the activities in the sample/replicate wells
         # deterministically from the relative concentrations above.
         k = pymc.HalfNormal("k", sd=3, dims=("strain",), )
-        batch_effect = pymc.Lognormal(
+        batch_effect = pymc.LogNormal(
             "batch_effect",
             mu=0,
             sd=0.3,
@@ -170,8 +170,8 @@ class LongFormModel:
             dims=("culture_id")
         )
         # The inputs are diluted 72x into the assay.
-        dilution_factor = pymc.Data("dilution_factor", 72)
-        assay_effect = pymc.Lognormal(
+        dilution_factor = pymc.ConstantData("dilution_factor", 72)
+        assay_effect = pymc.LogNormal(
             "assay_effect",
             mu=0,
             sd=0.1,
@@ -184,7 +184,7 @@ class LongFormModel:
         )
 
         # prediction
-        cutinase_time = pymc.Data(
+        cutinase_time = pymc.ConstantData(
             "cutinase_time", t_obs, dims=("kinetic_id", "cutinase_cycle")
         )
         S0 = pymc.Uniform("S0", 0.5, 0.7) #truth should be 0.662 mM
@@ -198,7 +198,7 @@ class LongFormModel:
 
         # The reaction product (4-nitrophenol) is measured in [mmol/L] = [µmol/mL] via the error model.
         # Our prediction is also in µmol/mL.
-        absorbance = pymc.Data(
+        absorbance = pymc.ConstantData(
             "cutinase_absorbance", y_obs , dims=("kinetic_id", "cutinase_cycle")
         )
         L_cut = self.cm_nitrophenol.loglikelihood(
