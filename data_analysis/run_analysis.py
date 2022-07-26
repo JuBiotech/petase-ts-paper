@@ -9,6 +9,8 @@ import cutisplit
 
 
 _log = logging.getLogger(__file__)
+
+
 class CutisplitAnalysis():
     """
     Convenience class to execute the general functions for cutisplit analysis.
@@ -98,13 +100,6 @@ class CutisplitAnalysis():
     def get_df_cutinase(self, repetition=None):
         df_cutinase = cutisplit.read_cutinase(self.DP_RUN, repetition=repetition)
         return df_cutinase
-
-
-    def get_df_sgfp(self):
-        df_sgfp, t0_delta = cutisplit.read_sgfp(self.DP_RUN)
-        print("!! Overriding t0_delta with 0.25 hours !!")
-        t0_delta = 0.25
-        return df_sgfp, t0_delta
 
 
 def read_repetition(run_id, repetition, *, dcs_experiment="Pahpshmir_MTP-Screening-PETase"):
