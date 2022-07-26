@@ -8,11 +8,16 @@ import pandas
 import retl
 
 
-def read_nitrophenol_calibration(dp_run: os.PathLike):
+def read_nitrophenol_calibration(dp_run: os.PathLike, repetition=None):
     """Parse Nitrophenol calibration data into DataFrame for calibr8 model."""
-    df_standards = retl.parse(pathlib.Path(dp_run, "Cutinase_Standard.xml"))[
-        "Label1_Copy1"
-    ].value
+    if type(repetition)==int: 
+        df_standards = retl.parse(pathlib.Path(dp_run, f"Cutinase_Standard_{repetition}.xml"))[
+            "Label1_Copy1"
+        ].value
+    else:
+        df_standards = retl.parse(pathlib.Path(dp_run, "Cutinase_Standard.xml"))[
+            "Label1_Copy1"
+        ].value
 
     # concentrations of triplicates, ordered Fortran style:
     standard_concentrations = pandas.read_excel(
@@ -21,8 +26,7 @@ def read_nitrophenol_calibration(dp_run: os.PathLike):
     # numpy magic to expand it into the same shape as the wells:
     standard_concentrations = numpy.repeat(
         standard_concentrations.reshape(3, 8).flatten("F")[None, :], repeats=3
-    ).reshape(8, 3 * 3)
-    standard_concentrations
+    ).reshape(8, 3 * 3) / 6 #final dilution of 40 ul in 200 ul
 
     # the corresponding well IDs:
     standard_wells = numpy.array(
@@ -42,9 +46,13 @@ def read_nitrophenol_calibration(dp_run: os.PathLike):
 
 def read_cutinase(
     dp_run: os.PathLike,
+    repetition=None
 ) -> pandas.DataFrame:
     """Parse cutinase data into DataFrame."""
-    samples = retl.parse(pathlib.Path(dp_run, "Cutinase_Sample.xml"))
+    if type(repetition)==int: 
+        samples = retl.parse(pathlib.Path(dp_run, f"Cutinase_Sample_{repetition}.xml"))
+    else:
+        samples = retl.parse(pathlib.Path(dp_run, f"Cutinase_Sample.xml"))
     df_value = samples["Label1_Copy1"].value
     # Time in minutes and not in hours
     df_time = samples["Label1_Copy1"].time * 60
@@ -60,7 +68,7 @@ def read_cutinase(
     return df_cutinase
 
 
-def read_sgfpread_cutinase(
+def read_sgfp(
     dp_run: os.PathLike,
 ) -> typing.Tuple[pandas.DataFrame, float]:
     """Parse sGFP data into DataFrame and time delta between pipetting and measurement."""
@@ -89,6 +97,12 @@ def read_sgfpread_cutinase(
     with open(pathlib.Path(dp_run, "DEBUG.log")) as origin_file:
         for line in origin_file:
             if "Loading reader..." in line:
+                dt_load = datetime.datetime.strptime(
+                    line[2:21] + "+0000", "%Y-%m-%dT%H:%M:%S%z"
+                )
+                t0_pipetted = dt_load + datetime.timedelta(minutes=10)
+                break
+            elif "sGFP assay: Assay start" in line:
                 dt_load = datetime.datetime.strptime(
                     line[2:21] + "+0000", "%Y-%m-%dT%H:%M:%S%z"
                 )

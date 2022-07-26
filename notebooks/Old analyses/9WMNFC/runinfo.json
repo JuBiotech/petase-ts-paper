@@ -1,0 +1,13 @@
+{
+  "channels": {
+    "Pahpshmir-Evoware": "192.168.1.151:50011",
+    "Pahpshmir-Rodi": "192.168.1.254"
+  },
+  "comment": "",
+  "end_utc": "2020-12-01T10:31:06Z",
+  "id": "9WMNFC",
+  "image": "jugit-registry.fz-juelich.de/ibg-1/micropro/dibdocker/dibecs:3.2.2",
+  "start_utc": "2020-11-30T17:36:18Z",
+  "state": "Finished",
+  "upload_utc": "2020-12-01T10:38:08Z"
+}
