@@ -7,7 +7,10 @@ This projects provides the raw data, data analysis notebooks as well as figures 
 *These authors contributed equally.
 
 ## Structure
-Raw data can be found in the `data` folder. Data analysis is conducted in `data_analysis`. Plots for the accompanying paper can be found in `paper`.
+Raw data can be found in the `data` folder. Data analysis is conducted in `data_analysis`.
+To load the MCMC traces, please head over to [Zenodo](https://doi.org/10.5281/zenodo.13985584), download and unzip the folder structure and merge with the folder `data_analysis`.
+The MCMC files end in `.nc`.
+Plots for the accompanying paper can be found in `paper`.
 The results for individual experiments can be found by a unique idetentifier, their so-called Run ID.
 
 The following runs were conducted:
